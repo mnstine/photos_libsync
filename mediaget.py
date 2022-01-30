@@ -1,5 +1,5 @@
 import os
-from init_photo_service import Create_Service
+from Google import Create_Service
 import pandas as pd  # pip install pandas
 import requests  # pip install requests
 
@@ -16,7 +16,7 @@ SCOPES = ['https://www.googleapis.com/auth/photoslibrary']
 
 service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
-# myAlbums = service.albums().list().execute()
+# myAlbums = sourceservice.albums().list().execute()
 myAlbums = service.albums().list().execute()
 myAlbums_list = myAlbums.get('albums')
 dfAlbums = pd.DataFrame(myAlbums_list)

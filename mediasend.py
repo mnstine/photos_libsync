@@ -29,7 +29,7 @@
 #     ]
 # }
 #
-# upload_response = service.mediaItems().batchCreate(body=request_body).execute()
+# upload_response = sourceservice.mediaItems().batchCreate(body=request_body).execute()
 # endregion
 
 
