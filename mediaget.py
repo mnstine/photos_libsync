@@ -1,5 +1,5 @@
 import os
-from Google import Create_Service
+from init_photo_service import Create_Service
 import pandas as pd  # pip install pandas
 import requests  # pip install requests
 
@@ -9,18 +9,19 @@ pd.set_option('display.max_colwidth', 150)
 pd.set_option('display.width', 150)
 pd.set_option('expand_frame_repr', True)
 
-CLIENT_SECRET_FILE = 'client_secret_photo_sync_service.json'
 API_NAME = 'photoslibrary'
 API_VERSION = 'v1'
-SCOPES = ['https://www.googleapis.com/auth/photoslibrary']
+CLIENT_SECRET_FILE = 'client_secret_photo_sync_service.json'
+SCOPES = ['https://www.googleapis.com/auth/photoslibrary',
+          'https://www.googleapis.com/auth/photoslibrary.sharing']
+DISCOVERY_URL = 'https://www.googleapis.com/discovery/v1/apis/photoslibrary/v1/rest'
 
-service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
+service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, SCOPES)
 
-# myAlbums = sourceservice.albums().list().execute()
 myAlbums = service.albums().list().execute()
 myAlbums_list = myAlbums.get('albums')
 dfAlbums = pd.DataFrame(myAlbums_list)
-travel_album_id = dfAlbums[dfAlbums['title'] == 'Recipes']['id'].to_string(index=False).strip()
+source_album_id = dfAlbums[dfAlbums['title'] == 'Recipes']['id'].to_string(index=False).strip()
 
 
 def download_file(url: str, local_folder: str, source_file: str):
@@ -32,7 +33,7 @@ def download_file(url: str, local_folder: str, source_file: str):
             f.close()
 
 
-media_files = service.mediaItems().search(body={'albumId': travel_album_id}).execute()['mediaItems']
+media_files = service.mediaItems().search(body={'albumId': source_album_id}).execute()['mediaItems']
 
 destination_folder = r'.\CacheFolder'
 
