@@ -19,6 +19,11 @@ upload_url = 'https://photoslibrary.googleapis.com/v1/uploads'
 send_tokens = []
 
 
+request_body = {
+    'album': {'title': '1212'}
+}
+response_album_family_photos = service.albums().create(body=request_body).execute()
+
 def upload_image(image_path, upload_file_name, ul_token):
     headers = {
         'Authorization': 'Bearer ' + ul_token.token,
@@ -50,6 +55,7 @@ send_tokens.append(response.content.decode('utf-8'))
 new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
 
 request_body = {
+    "albumId": '1212',
     'newMediaItems': new_media_items
 }
 
