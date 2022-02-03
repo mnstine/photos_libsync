@@ -1,6 +1,7 @@
 import os
 import pickle
 import requests
+import pandas as pd
 from init_photo_service import Create_Service
 
 
@@ -14,15 +15,28 @@ DISCOVERY_URL = 'https://www.googleapis.com/discovery/v1/apis/photoslibrary/v1/r
 service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, SCOPES)
 
 token = pickle.load(open('token_photoslibrary_v1.pickle', 'rb'))
-source_folder = r'.\CacheFolder'
 upload_url = 'https://photoslibrary.googleapis.com/v1/uploads'
 send_tokens = []
 
 
-request_body = {
-    'album': {'title': '1212'}
-}
-response_album_family_photos = service.albums().create(body=request_body).execute()
+def create_album(album_name):
+    request_body = {
+        'album': {'title': album_name}
+    }
+    album_create_status = service.albums().create(body=request_body).execute()
+    return album_create_status
+
+def list_albums(la_token):
+    la_url = 'https://photoslibrary.googleapis.com/v1/albums?excludeNonAppCreatedData = true'
+    headers = {
+        'Authorization': 'Bearer ' + la_token.token,
+        'Content - type': 'application / json'
+    }
+    la_response = requests.get(la_url,headers=headers)
+    print(la_response)
+    return la_response
+
+
 
 def upload_image(image_path, upload_file_name, ul_token):
     headers = {
@@ -37,26 +51,54 @@ def upload_image(image_path, upload_file_name, ul_token):
     print('\nUpload token: {0}'.format(ul_response.content.decode('utf-8')))
     print(upload_file_name)
     return ul_response
+service.
+
+def queue_imagexfer(img_folder, img_name):
+    img_obj = os.path.join(img_folder, img_name)
+    response = upload_image(img_obj, os.path.basename(img_obj), token)
+    return response
 
 
+def commit_transfer(albumidname):
+    albumid = albumidname
+    new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
 
-image_1 = os.path.join(source_folder, 'NewScreenshot_20220104-194424.png')
-response = upload_image(image_1, os.path.basename(image_1), token)
-send_tokens.append(response.content.decode('utf-8'))
+    request_body = {
+        "albumId": albumidname,
+        "newMediaItems": new_media_items
+    }
+    upload_response = service.mediaItems().batchCreate(body=request_body).execute()
+    return
 
-image_2 = os.path.join(source_folder, 'NewScreenshot_20220104-194437.png')
-response = upload_image(image_2, os.path.basename(image_2), token)
-send_tokens.append(response.content.decode('utf-8'))
 
-image_3 = os.path.join(source_folder, 'NewScreenshot_20220104-194444.png')
-response = upload_image(image_3, os.path.basename(image_3), token)
-send_tokens.append(response.content.decode('utf-8'))
+def find_media_id():
+    response = service.mediaItems().list(pageSize=100).execute()
 
-new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
+    lst_medias = response.get('mediaItems')
+    nextPageToken = response.get('nextPageToken')
 
-request_body = {
-    "albumId": '1212',
-    'newMediaItems': new_media_items
-}
+    while nextPageToken:
+        response = service.mediaItems().list(
+            pageSize=100,
+            pageToken=nextPageToken
+        ).execute()
 
-upload_response = service.mediaItems().batchCreate(body=request_body).execute()
+        lst_medias.extend(response.get('mediaItems'))
+        nextPageToken = response.get('nextPageToken')
+
+    df_media_items = pd.DataFrame(lst_medias)
+    print(df_media_items)
+    # media_id = df_media_items['id'][108]
+    # response = service.mediaItems().get(mediaItemId=media_id).execute()
+    return
+
+source_folder = r'.\CacheFolder'
+filename = 'NewScreenshot_20220104-194424.png'
+# 'NewScreenshot_20220104-194437.png'
+# 'NewScreenshot_20220104-194444.png'
+create_album('1313')
+find_media_id()
+list_albums(token)
+token_response = queue_imagexfer(source_folder, filename)
+send_tokens.append(token_response.content.decode('utf-8'))
+commit_transfer('1313')
