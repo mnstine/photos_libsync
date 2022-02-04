@@ -26,15 +26,31 @@ def create_album(album_name):
     album_create_status = service.albums().create(body=request_body).execute()
     return album_create_status
 
-def list_albums(la_token):
-    la_url = 'https://photoslibrary.googleapis.com/v1/albums?excludeNonAppCreatedData = true'
-    headers = {
-        'Authorization': 'Bearer ' + la_token.token,
-        'Content - type': 'application / json'
-    }
-    la_response = requests.get(la_url,headers=headers)
-    print(la_response)
-    return la_response
+def find_media_id(album):
+    response = service.mediaItems().search().execute()
+    found_medias = response.get('mediaItems')
+    nextPageToken = response.get('nextPageToken')
+
+    while nextPageToken:
+        response = service.mediaItems().search(
+            pageSize=100,
+            pageToken=nextPageToken
+        ).execute()
+
+        found_medias.extend(response.get('mediaItems'))
+        nextPageToken = response.get('nextPageToken')
+
+    print(found_medias)
+    df_media_items = pd.DataFrame(found_medias)
+    print(df_media_items)
+    print(df_media_items['id'].where(df_media_items['filename'] is album))
+
+    # for album in df_media_items['filename']:
+    #     album_id = df_media_items['id']
+    #     print(album_id)
+    # media_id = df_media_items['id'][108]
+    # response = service.mediaItems().get(mediaItemId=media_id).execute()
+    return album_id
 
 
 
@@ -51,7 +67,7 @@ def upload_image(image_path, upload_file_name, ul_token):
     print('\nUpload token: {0}'.format(ul_response.content.decode('utf-8')))
     print(upload_file_name)
     return ul_response
-service.
+
 
 def queue_imagexfer(img_folder, img_name):
     img_obj = os.path.join(img_folder, img_name)
@@ -71,7 +87,7 @@ def commit_transfer(albumidname):
     return
 
 
-def find_media_id():
+def list_media_id():
     response = service.mediaItems().list(pageSize=100).execute()
 
     lst_medias = response.get('mediaItems')
@@ -96,9 +112,9 @@ source_folder = r'.\CacheFolder'
 filename = 'NewScreenshot_20220104-194424.png'
 # 'NewScreenshot_20220104-194437.png'
 # 'NewScreenshot_20220104-194444.png'
-create_album('1313')
-find_media_id()
-list_albums(token)
-token_response = queue_imagexfer(source_folder, filename)
-send_tokens.append(token_response.content.decode('utf-8'))
-commit_transfer('1313')
+# create_album('1313')
+# list_media_id()
+find_media_id('DSC00256.JPG')
+# token_response = queue_imagexfer(source_folder, filename)
+# send_tokens.append(token_response.content.decode('utf-8'))
+# commit_transfer('1313')
