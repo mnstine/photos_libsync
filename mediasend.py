@@ -24,34 +24,51 @@ def create_album(album_name):
     }
     album_create_status = service.albums().create(body=request_body).execute()
     return album_create_status
+# def find_media_id(album):
+#     response = service.mediaItems().search().execute()
+#     found_medias = response.get('mediaItems')
+#     nextPageToken = response.get('nextPageToken')
+#
+#     while nextPageToken:
+#         response = service.mediaItems().search(
+#             pageSize=100,
+#             pageToken=nextPageToken
+#         ).execute()
+#
+#         found_medias.extend(response.get('mediaItems'))
+#         nextPageToken = response.get('nextPageToken')
+#
+#     print(found_medias)
+#     df_media_items = pd.DataFrame(found_medias)
+#     print(df_media_items)
+#     media_id = df_media_items.loc[df_media_items['filename'] == album, 'id'].values[0]
+# #    print(df_media_items['id'].where(df_media_items['filename'] is album))
+#
+#     # for album in df_media_items['filename']:
+#     #     album_id = df_media_items['id']
+#     #     print(album_id)
+#     # media_id = df_media_items['id'][108]
+#     # response = service.mediaItems().get(mediaItemId=media_id).execute()
+#     return media_id
 
 
-def find_media_id(album):
-    response = service.mediaItems().search().execute()
-    found_medias = response.get('mediaItems')
-    nextPageToken = response.get('nextPageToken')
-
-    while nextPageToken:
-        response = service.mediaItems().search(
-            pageSize=100,
-            pageToken=nextPageToken
-        ).execute()
-
-        found_medias.extend(response.get('mediaItems'))
-        nextPageToken = response.get('nextPageToken')
-
-    print(found_medias)
-    df_media_items = pd.DataFrame(found_medias)
-    print(df_media_items)
-    media_id = df_media_items.loc[df_media_items['filename'] == album, 'id'].values[0]
-#    print(df_media_items['id'].where(df_media_items['filename'] is album))
-
-    # for album in df_media_items['filename']:
-    #     album_id = df_media_items['id']
-    #     print(album_id)
-    # media_id = df_media_items['id'][108]
-    # response = service.mediaItems().get(mediaItemId=media_id).execute()
-    return media_id
+def get_album_id(source_album):
+    try:
+        next_page_token = None
+        albums = service.albums().list(pageSize=50).execute()
+        next_page_token = albums.get('nextPageToken')
+        while next_page_token:
+            response = service.albums().list(
+                pageSize=50,
+                pageToken=next_page_token
+            ).execute()
+        albums_list = albums.get('albums')
+        df_albums = pd.DataFrame(albums_list)
+        ret_album_id = df_albums[df_albums['title'] == source_album]['id'].to_string(index=False).strip()
+        return ret_album_id
+    except Exception as e:
+        print('Unable to find Album in get_album_id')
+    return ()
 
 
 def upload_image(image_path, upload_file_name, ul_token):
@@ -61,7 +78,6 @@ def upload_image(image_path, upload_file_name, ul_token):
         'X-Goog-Upload-Protocol': 'raw',
         'X-Goog-File-Name': upload_file_name
     }
-
     img = open(image_path, 'rb').read()
     ul_response = requests.post(upload_url, data=img, headers=headers)
     print('\nUpload token: {0}'.format(ul_response.content.decode('utf-8')))
@@ -75,12 +91,11 @@ def queue_imagexfer(img_folder, img_name):
     return response
 
 
-def commit_transfer(albumidname):
-    albumid = albumidname
+def commit_transfer(album_id):
     new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
 
     request_body = {
-        "albumId": albumidname,
+        "albumId": album_id,
         "newMediaItems": new_media_items
     }
     upload_response = service.mediaItems().batchCreate(body=request_body).execute()
@@ -108,15 +123,19 @@ def commit_transfer(albumidname):
 #     # response = service.mediaItems().get(mediaItemId=media_id).execute()
 #     return
 
-source_folder = r'.\CacheFolder'
-filename = 'Screenshot_20220104-194424.png'
 # 'NewScreenshot_20220104-194437.png'
 # 'NewScreenshot_20220104-194444.png'
-# create_album('1313')
+
 # list_media_id()
 
-token_response = queue_imagexfer(source_folder, filename)
+source = r'.\CacheFolder'
+filename = 'Screenshot_20220104-194424.png'
+destination = "Recipe"
+create_album(destination)
+album_id = get_album_id(destination)
+print(album_id)
+token_response = queue_imagexfer(source, filename)
 send_tokens.append(token_response.content.decode('utf-8'))
-commit_transfer('1313')
-testresult = find_media_id('DSC00256.JPG')
-print(testresult)
+commit_transfer(album_id)
+# testresult = find_media_id('DSC00256.JPG')
+# print(testresult)
