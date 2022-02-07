@@ -18,10 +18,33 @@ DISCOVERY_URL = 'https://www.googleapis.com/discovery/v1/apis/photoslibrary/v1/r
 
 service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, SCOPES)
 
-myAlbums = service.albums().list().execute()
-myAlbums_list = myAlbums.get('albums')
-dfAlbums = pd.DataFrame(myAlbums_list)
-source_album_id = dfAlbums[dfAlbums['title'] == 'Recipes']['id'].to_string(index=False).strip()
+
+def list_albums():
+    next_page_token = None
+    albums = service.albums().list(pageSize=50).execute()
+    next_page_token = albums.get('nextPageToken')
+
+    while next_page_token:
+        response = service.albums().list(
+            pageSize=50,
+            pageToken=next_page_token
+        ).execute()
+    print(albums)
+    print('********************************')
+    albums_list = albums.get('albums')
+    print(albums_list)
+    print('********************************')
+    df_albums = pd.DataFrame(albums_list)
+    print(df_albums)
+    print('********************************')
+    return df_albums
+
+
+def find_album_id_from_name(df_albums, source_album):
+    album_id = df_albums[df_albums['title'] == source_album]['id'].to_string(index=False).strip()
+    print(album_id)
+    print('********************************')
+    return album_id
 
 
 def download_file(url: str, local_folder: str, source_file: str):
@@ -32,12 +55,22 @@ def download_file(url: str, local_folder: str, source_file: str):
             f.write(response.content)
             f.close()
 
+def dl_album(album_id):
+    try:
+        media_files = service.mediaItems().search(body={'albumId': album_id}).execute()['mediaItems']
+        destination_folder = r'.\CacheFolder'
+        for media_file in media_files:
+            file_name = media_file['filename']
+            download_url = media_file['baseUrl'] + '=d'
+            download_file(download_url, destination_folder, file_name)
+    except Exception as e:
+        print('Unable to find Album.')
+        print(e)
+    return None
 
-media_files = service.mediaItems().search(body={'albumId': source_album_id}).execute()['mediaItems']
+fixed_source = "Recipes"
+all_albums = list_albums()
+album_source = find_album_id_from_name(all_albums, fixed_source)
+dl_album(album_source)
 
-destination_folder = r'.\CacheFolder'
 
-for media_file in media_files:
-    file_name = media_file['filename']
-    download_url = media_file['baseUrl'] + '=d'
-    download_file(download_url, destination_folder, file_name)
