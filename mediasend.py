@@ -91,13 +91,38 @@ def queue_imagexfer(img_folder, img_name):
     return response
 
 
-def commit_transfer(album_id):
-    new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
+def commit_transfer(commit_album_id):
+#    new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
+    header_album_id = (commit_album_id)
+    for each_token in [send_tokens]:
+        if each_token == None:
+            print('No Token Found')
+            return
+        else:
+            each_token = "".join(each_token)
+            continue
 
-    request_body = {
-        "albumId": album_id,
-        "newMediaItems": new_media_items
-    }
+    request_body = (
+       f'{{'
+       f'     "albumId": {header_album_id},'
+       f'     "newMediaItems": ['
+       f'         {{'
+       f'             "description": "item-description",'
+       f'             "simpleMediaItem": {{'
+       f'                 "fileName": "filename",'
+       f'                 "uploadToken": {each_token}'
+       f'             }}'
+       f'         }}'
+#      f'         , ...'
+       f'     ]'
+#      f'     "albumPosition": {'
+#      f'         "position": "after-media-item",'
+#      f'         "relativeMediaItemId": "media-item-id"'
+#      f'     }'
+        f'}}'
+    )
+
+
     upload_response = service.mediaItems().batchCreate(body=request_body).execute()
     return
 
@@ -130,8 +155,13 @@ def commit_transfer(album_id):
 
 source = r'.\CacheFolder'
 filename = 'Screenshot_20220104-194424.png'
+album_id = None
 destination = "Recipe"
-create_album(destination)
+album_id = get_album_id(destination)
+if album_id:
+    album_id = album_id
+else:
+    create_album(destination)
 album_id = get_album_id(destination)
 print(album_id)
 token_response = queue_imagexfer(source, filename)
