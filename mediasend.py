@@ -8,7 +8,8 @@ from init_photo_service import Create_Service
 API_NAME = 'photoslibrary'
 API_VERSION = 'v1'
 CLIENT_SECRET_FILE = 'client_secret_photo_sync_service.json'
-SCOPES = ['https://www.googleapis.com/auth/photoslibrary.edit.appcreateddata']
+SCOPES = ['https://www.googleapis.com/auth/photoslibrary',
+          'https://www.googleapis.com/auth/photoslibrary.sharing']
 DISCOVERY_URL = 'https://www.googleapis.com/discovery/v1/apis/photoslibrary/v1/rest'
 
 service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, SCOPES)
@@ -156,13 +157,13 @@ def commit_transfer(commit_album_id):
 source = r'.\CacheFolder'
 filename = 'Screenshot_20220104-194424.png'
 album_id = None
-destination = "Recipe"
+destination = "Recipes"
 album_id = get_album_id(destination)
 if album_id:
     album_id = album_id
 else:
     create_album(destination)
-album_id = get_album_id(destination)
+# album_id = get_album_id(destination)
 print(album_id)
 token_response = queue_imagexfer(source, filename)
 send_tokens.append(token_response.content.decode('utf-8'))
