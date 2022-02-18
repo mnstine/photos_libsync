@@ -3,6 +3,7 @@ from init_photo_service import Create_Service
 import pandas as pd  # pip install pandas
 import requests  # pip install requests
 
+
 pd.set_option('display.max_columns', 100)
 pd.set_option('display.max_rows', 150)
 pd.set_option('display.max_colwidth', 150)
