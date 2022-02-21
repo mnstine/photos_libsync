@@ -56,8 +56,7 @@ def dl_album(album_id):
             download_url = media_file['baseUrl'] + '=d'
             download_file(download_url, destination_folder, file_name)
     except Exception as e:
-        print('Unable to find Album.')
-        print(e)
+        print('Unable to find %s Album.')
     return None
 
 

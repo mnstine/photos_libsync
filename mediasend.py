@@ -25,32 +25,6 @@ def create_album(album_name):
     }
     album_create_status = service.albums().create(body=request_body).execute()
     return album_create_status
-# def find_media_id(album):
-#     response = service.mediaItems().search().execute()
-#     found_medias = response.get('mediaItems')
-#     nextPageToken = response.get('nextPageToken')
-#
-#     while nextPageToken:
-#         response = service.mediaItems().search(
-#             pageSize=100,
-#             pageToken=nextPageToken
-#         ).execute()
-#
-#         found_medias.extend(response.get('mediaItems'))
-#         nextPageToken = response.get('nextPageToken')
-#
-#     print(found_medias)
-#     df_media_items = pd.DataFrame(found_medias)
-#     print(df_media_items)
-#     media_id = df_media_items.loc[df_media_items['filename'] == album, 'id'].values[0]
-# #    print(df_media_items['id'].where(df_media_items['filename'] is album))
-#
-#     # for album in df_media_items['filename']:
-#     #     album_id = df_media_items['id']
-#     #     print(album_id)
-#     # media_id = df_media_items['id'][108]
-#     # response = service.mediaItems().get(mediaItemId=media_id).execute()
-#     return media_id
 
 
 def get_album_id(source_album):
@@ -93,7 +67,7 @@ def queue_imagexfer(img_folder, img_name):
 
 
 def commit_transfer(commit_album_id):
-#    new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
+    new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
     header_album_id = (commit_album_id)
     for each_token in [send_tokens]:
         if each_token == None:
@@ -102,60 +76,16 @@ def commit_transfer(commit_album_id):
         else:
             each_token = "".join(each_token)
             continue
-
-    request_body = (
-       f'{{'
-       f'     "albumId": {header_album_id},'
-       f'     "newMediaItems": ['
-       f'         {{'
-       f'             "description": "item-description",'
-       f'             "simpleMediaItem": {{'
-       f'                 "fileName": "filename",'
-       f'                 "uploadToken": {each_token}'
-       f'             }}'
-       f'         }}'
-#      f'         , ...'
-       f'     ]'
-#      f'     "albumPosition": {'
-#      f'         "position": "after-media-item",'
-#      f'         "relativeMediaItemId": "media-item-id"'
-#      f'     }'
-        f'}}'
-    )
-
-
+    request_body = {
+        "albumId": header_album_id,
+        "newMediaItems": [{'simpleMediaItem': {'uploadToken': each_token}}]
+    }
     upload_response = service.mediaItems().batchCreate(body=request_body).execute()
     return
 
 
-# def list_media_id():
-#     response = service.mediaItems().list(pageSize=100).execute()
-#
-#     lst_medias = response.get('mediaItems')
-#     nextPageToken = response.get('nextPageToken')
-#
-#     while nextPageToken:
-#         response = service.mediaItems().list(
-#             pageSize=100,
-#             pageToken=nextPageToken
-#         ).execute()
-#
-#         lst_medias.extend(response.get('mediaItems'))
-#         nextPageToken = response.get('nextPageToken')
-#
-#     df_media_items = pd.DataFrame(lst_medias)
-#     print(df_media_items)
-#     # media_id = df_media_items['id'][108]
-#     # response = service.mediaItems().get(mediaItemId=media_id).execute()
-#     return
-
-# 'NewScreenshot_20220104-194437.png'
-# 'NewScreenshot_20220104-194444.png'
-
-# list_media_id()
-
 source = r'.\CacheFolder'
-filename = 'Screenshot_20220104-194424.png'
+filename = '30426-20211017214041-Edit.jpg'
 album_id = None
 destination = "Recipes"
 album_id = get_album_id(destination)
@@ -163,7 +93,6 @@ if album_id:
     album_id = album_id
 else:
     create_album(destination)
-# album_id = get_album_id(destination)
 print(album_id)
 token_response = queue_imagexfer(source, filename)
 send_tokens.append(token_response.content.decode('utf-8'))
