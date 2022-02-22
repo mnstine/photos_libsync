@@ -1,4 +1,5 @@
 /venv/
-!/client_secret_photo_sync_service.json
-!/CacheFolder/**
-!/token_photoslibrary_v1.pickle
+/client_secret_photo_sync_service.json
+/CacheFolder/*
+!/CacheFolder
+/token_photoslibrary_v1.pickle
