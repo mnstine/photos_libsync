@@ -86,22 +86,23 @@ def commit_transfer(commit_album_id):
         "newMediaItems": [{'simpleMediaItem': {'uploadToken': each_token}}]
     }
     upload_response = service.mediaItems().batchCreate(body=request_body).execute()
-    return
+    return upload_response
 
 
 source = r'.\CacheFolder'
 filename = '30426-20211017214041-Edit.jpg'
 album_id = None
 destination = "Recipes"
-album_id = mediaget2.get_album_id(destination)
+album_id = get_album_id(destination)
 if album_id:
     album_id = album_id
 else:
     create_album(destination)
     print('Created new Album')
 print(album_id)
+# start filename list loop here
 token_response = queue_imagexfer(source, filename)
 send_tokens.append(token_response.content.decode('utf-8'))
-commit_transfer(album_id)
-# testresult = find_media_id('DSC00256.JPG')
-# print(testresult)
+# end filename list loop here
+commit_result = commit_transfer(album_id)
+print(commit_result)
