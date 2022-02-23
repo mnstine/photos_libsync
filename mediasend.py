@@ -50,24 +50,30 @@ def get_album_id(source_album):
         print('Unable to find Album in get_album_id')
     return ()
 
+def upload_album(album_id):
+    try:
+        media_files = service.mediaItems().search(body={'albumId': album_id}).execute()['mediaItems']
+        source_folder = r'.\CacheFolder'
+        for media_file in media_files:
+            file_name = media_file['filename']
+            upload_image(source_folder, file_name)
+    except Exception as e:
+        print('Exception in upload_album function')
+    return None
 
-def upload_image(image_path, upload_file_name, ul_token):
+
+def upload_image(img_folder, img_name):
+    img_obj = os.path.join(img_folder, img_name)
     headers = {
-        'Authorization': 'Bearer ' + ul_token.token,
+        'Authorization': 'Bearer ' + token.token,
         'Content-type': 'application/octet-stream',
         'X-Goog-Upload-Protocol': 'raw',
-        'X-Goog-File-Name': upload_file_name
+        'X-Goog-File-Name': img_obj
     }
-    img = open(image_path, 'rb').read()
-    ul_response = requests.post(upload_url, data=img, headers=headers)
-    print('\nUpload token: {0}'.format(ul_response.content.decode('utf-8')))
-    print(upload_file_name)
-    return ul_response
-
-
-def queue_imagexfer(img_folder, img_name):
-    img_obj = os.path.join(img_folder, img_name)
-    response = upload_image(img_obj, os.path.basename(img_obj), token)
+    img = open(img_obj, 'rb').read()
+    response = requests.post(upload_url, data=img, headers=headers)
+    print('\nUpload token: {0}'.format(response.content.decode('utf-8')))
+    print(img_obj)
     return response
 
 
@@ -101,7 +107,7 @@ else:
     print('Created new Album')
 print(album_id)
 # start filename list loop here
-token_response = queue_imagexfer(source, filename)
+token_response = upload_image(source, filename, token)
 send_tokens.append(token_response.content.decode('utf-8'))
 # end filename list loop here
 commit_result = commit_transfer(album_id)
