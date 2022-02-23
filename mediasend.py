@@ -56,7 +56,8 @@ def upload_album(album_id):
         source_folder = r'.\CacheFolder'
         for media_file in media_files:
             file_name = media_file['filename']
-            upload_image(source_folder, file_name)
+            token_response = upload_image(source_folder, file_name)
+            send_tokens.append(token_response.content.decode('utf-8'))
     except Exception as e:
         print('Exception in upload_album function')
     return None
@@ -79,16 +80,15 @@ def upload_image(img_folder, img_name):
 
 def commit_transfer(commit_album_id):
     new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
-    header_album_id = (commit_album_id)
     for each_token in [send_tokens]:
-        if each_token == None:
+        if each_token is None:
             print('No Token Found')
             return
         else:
             each_token = "".join(each_token)
             continue
     request_body = {
-        "albumId": header_album_id,
+        "albumId": commit_album_id,
         "newMediaItems": [{'simpleMediaItem': {'uploadToken': each_token}}]
     }
     upload_response = service.mediaItems().batchCreate(body=request_body).execute()
@@ -97,7 +97,7 @@ def commit_transfer(commit_album_id):
 
 source = r'.\CacheFolder'
 filename = '30426-20211017214041-Edit.jpg'
-album_id = None
+# album_id = None
 destination = "Recipes"
 album_id = get_album_id(destination)
 if album_id:
@@ -107,8 +107,9 @@ else:
     print('Created new Album')
 print(album_id)
 # start filename list loop here
-token_response = upload_image(source, filename)
-send_tokens.append(token_response.content.decode('utf-8'))
+# token_response1 = upload_image(source, filename)
+# send_tokens.append(token_response1.content.decode('utf-8'))
 # end filename list loop here
+upload_album(album_id)
 commit_result = commit_transfer(album_id)
 print(commit_result)
