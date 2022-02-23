@@ -107,7 +107,7 @@ else:
     print('Created new Album')
 print(album_id)
 # start filename list loop here
-token_response = upload_image(source, filename, token)
+token_response = upload_image(source, filename)
 send_tokens.append(token_response.content.decode('utf-8'))
 # end filename list loop here
 commit_result = commit_transfer(album_id)
