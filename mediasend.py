@@ -2,10 +2,13 @@ import os
 import pickle
 import requests
 import pandas as pd
-
-import mediaget2
 from init_photo_service import Create_Service
 
+pd.set_option('display.max_columns', 100)
+pd.set_option('display.max_rows', 150)
+pd.set_option('display.max_colwidth', 150)
+pd.set_option('display.width', 150)
+pd.set_option('expand_frame_repr', True)
 
 API_NAME = 'photoslibrary'
 API_VERSION = 'v1'
