@@ -34,7 +34,6 @@ def create_album(album_name):
 
 def get_album_id(source_album):
     try:
-        next_page_token = None
         albums = service.albums().list(pageSize=50).execute()
         next_page_token = albums.get('nextPageToken')
         while next_page_token:
@@ -43,9 +42,6 @@ def get_album_id(source_album):
                 pageToken=next_page_token
             ).execute()
         albums_list = albums.get('albums')
-#        textfile = open("albums_list.txt", "w")
-#        textfile.write(albums_list)
-#        textfile.close()
         df_albums = pd.DataFrame(albums_list)
         ret_album_id = df_albums[df_albums['title'] == source_album]['id'].to_string(index=False).strip()
         return ret_album_id
@@ -53,46 +49,36 @@ def get_album_id(source_album):
         print('Unable to find Album in get_album_id')
     return ()
 
+
 def upload_album(album_id):
-    try:
-        media_files = service.mediaItems().search(body={'albumId': album_id}).execute()['mediaItems']
-        source_folder = r'.\CacheFolder'
-        for media_file in media_files:
-            file_name = media_file['filename']
-            token_response = upload_image(source_folder, file_name)
-            send_tokens.append(token_response.content.decode('utf-8'))
-    except Exception as e:
-        print('Exception in upload_album function')
+    source_folder = r'.\CacheFolder'
+    media_files = os.listdir(source_folder)
+    for media_file in media_files:
+        img_obj = os.path.join(source_folder, media_file)
+        token_response = upload_image(img_obj, os.path.basename(img_obj), token)
+        send_tokens.append(token_response.content.decode('utf-8'))
     return None
 
 
-def upload_image(img_folder, img_name):
-    img_obj = os.path.join(img_folder, img_name)
+def upload_image(img_folder, img_name, ul_token):
     headers = {
-        'Authorization': 'Bearer ' + token.token,
+        'Authorization': 'Bearer ' + ul_token.token,
         'Content-type': 'application/octet-stream',
         'X-Goog-Upload-Protocol': 'raw',
-        'X-Goog-File-Name': img_obj
+        'X-Goog-File-Name': img_name
     }
-    img = open(img_obj, 'rb').read()
+    img = open(img_folder, 'rb').read()
     response = requests.post(upload_url, data=img, headers=headers)
     print('\nUpload token: {0}'.format(response.content.decode('utf-8')))
-    print(img_obj)
+    print(img_name)
     return response
 
 
 def commit_transfer(commit_album_id):
     new_media_items = [{'simpleMediaItem': {'uploadToken': each_token}} for each_token in send_tokens]
-    for each_token in [send_tokens]:
-        if each_token is None:
-            print('No Token Found')
-            return
-        else:
-            each_token = "".join(each_token)
-            continue
     request_body = {
         "albumId": commit_album_id,
-        "newMediaItems": [{'simpleMediaItem': {'uploadToken': each_token}}]
+        "newMediaItems": new_media_items
     }
     upload_response = service.mediaItems().batchCreate(body=request_body).execute()
     return upload_response
