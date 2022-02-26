@@ -16,26 +16,36 @@ CLIENT_SECRET_FILE = 'client_secret_photo_sync_service.json'
 SCOPES = ['https://www.googleapis.com/auth/photoslibrary',
           'https://www.googleapis.com/auth/photoslibrary.sharing']
 DISCOVERY_URL = 'https://www.googleapis.com/discovery/v1/apis/photoslibrary/v1/rest'
+endpoint = 'mediaget_endpoint'
 
-service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, SCOPES)
+dl_service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, endpoint, SCOPES)
 
 
 def get_album_id(source_album):
     try:
         next_page_token = None
-        albums = service.albums().list(pageSize=50).execute()
-        next_page_token = albums.get('nextPageToken')
+        response_albums = dl_service.albums().list(
+            pageSize=50,
+            excludeNonAppCreatedData=False
+        ).execute()
+        albums = response_albums.get('albums')
+        next_page_token = response_albums.get('nextPageToken')
         while next_page_token:
-            response = service.albums().list(
+            response_albums = dl_service.albums().list(
                 pageSize=50,
+                excludeNonAppCreatedData=False,
                 pageToken=next_page_token
             ).execute()
-        albums_list = albums.get('albums')
-        df_albums = pd.DataFrame(albums_list)
+            albums.append(response_albums.get('albums'))
+            next_page_token = response_albums.get('nextPageToken')
+        print(albums)
+        df_albums = pd.DataFrame(albums)
+        print(df_albums)
         ret_album_id = df_albums[df_albums['title'] == source_album]['id'].to_string(index=False).strip()
         return ret_album_id
     except Exception as e:
         print('Unable to find Album in get_album_id')
+        print(e)
     return ()
 
 
@@ -49,7 +59,7 @@ def download_file(url: str, local_folder: str, source_file: str):
 
 def dl_album(album_id):
     try:
-        media_files = service.mediaItems().search(body={'albumId': album_id}).execute()['mediaItems']
+        media_files = dl_service.mediaItems().search(body={'albumId': album_id}).execute()['mediaItems']
         destination_folder = r'.\CacheFolder'
         for media_file in media_files:
             file_name = media_file['filename']

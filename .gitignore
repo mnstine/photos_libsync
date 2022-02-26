@@ -3,3 +3,6 @@
 /CacheFolder/*
 !/CacheFolder
 /token_photoslibrary_v1.pickle
+/token_photoslibrary_v1_mediasend_endpoint.pickle
+/token_photoslibrary_v1_mediaget_endpoint.pickle
+!/CacheFolder/

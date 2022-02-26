@@ -17,8 +17,9 @@ CLIENT_SECRET_FILE = 'client_secret_photo_sync_service.json'
 SCOPES = ['https://www.googleapis.com/auth/photoslibrary',
           'https://www.googleapis.com/auth/photoslibrary.sharing']
 DISCOVERY_URL = 'https://www.googleapis.com/discovery/v1/apis/photoslibrary/v1/rest'
+endpoint = 'mediasend_endpoint'
 
-service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, SCOPES)
+service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, endpoint, SCOPES)
 
 token = pickle.load(open('token_photoslibrary_v1.pickle', 'rb'))
 upload_url = 'https://photoslibrary.googleapis.com/v1/uploads'
