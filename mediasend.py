@@ -50,7 +50,7 @@ def get_album_id(source_album):
     return ()
 
 
-def upload_album(album_id):
+def upload_album(ul_album_id):
     source_folder = r'.\CacheFolder'
     media_files = os.listdir(source_folder)
     for media_file in media_files:
