@@ -4,6 +4,7 @@ import requests
 import pandas as pd
 from init_photo_service import Create_Service
 
+
 pd.set_option('display.max_columns', 100)
 pd.set_option('display.max_rows', 150)
 pd.set_option('display.max_colwidth', 150)
@@ -22,6 +23,22 @@ service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_UR
 token = pickle.load(open('token_photoslibrary_v1.pickle', 'rb'))
 upload_url = 'https://photoslibrary.googleapis.com/v1/uploads'
 send_tokens = []
+
+
+def main():
+    destination = "Recipes"
+    album_id = get_album_id(destination)
+    if album_id:
+        album_id = album_id
+    else:
+        create_album(destination)
+        print('Created new Album')
+        album_id = get_album_id(destination)
+    print(album_id)
+    upload_album(album_id)
+    commit_result = commit_transfer(album_id)
+    print(commit_result)
+    return
 
 
 def create_album(album_name):
@@ -84,21 +101,5 @@ def commit_transfer(commit_album_id):
     return upload_response
 
 
-source = r'.\CacheFolder'
-filename = '30426-20211017214041-Edit.jpg'
-# album_id = None
-destination = "Recipes"
-album_id = get_album_id(destination)
-if album_id:
-    album_id = album_id
-else:
-    create_album(destination)
-    print('Created new Album')
-print(album_id)
-# start filename list loop here
-# token_response1 = upload_image(source, filename)
-# send_tokens.append(token_response1.content.decode('utf-8'))
-# end filename list loop here
-upload_album(album_id)
-commit_result = commit_transfer(album_id)
-print(commit_result)
+if __name__ == "__main__":
+    main()
