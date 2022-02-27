@@ -3,7 +3,6 @@ from init_photo_service import Create_Service
 import pandas as pd  # pip install pandas
 import requests  # pip install requests
 
-
 pd.set_option('display.max_columns', 100)
 pd.set_option('display.max_rows', 150)
 pd.set_option('display.max_colwidth', 150)
@@ -21,9 +20,18 @@ endpoint = 'mediaget_endpoint'
 dl_service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, endpoint, SCOPES)
 
 
+def main()
+    fixed_source = "Recipes"
+    album_id = get_album_id(fixed_source)
+    if album_id == ():
+        exit()
+    else:
+        dl_album(album_id)
+    return
+
+
 def get_album_id(source_album):
     try:
-        next_page_token = None
         response_albums = dl_service.albums().list(
             pageSize=50,
             excludeNonAppCreatedData=False
@@ -36,10 +44,13 @@ def get_album_id(source_album):
                 excludeNonAppCreatedData=False,
                 pageToken=next_page_token
             ).execute()
-            albums.append(response_albums.get('albums'))
+            if response_albums.get('albums') is not None:
+                albums.extend(response_albums.get('albums'))
             next_page_token = response_albums.get('nextPageToken')
         print(albums)
-        df_albums = pd.DataFrame(albums)
+        df_albums = pd.DataFrame(albums,
+                                 columns=['id', 'title', 'productURL', 'mediaItemsCount', 'coverPhotoBaseURL',
+                                          'coverMediaID'])
         print(df_albums)
         ret_album_id = df_albums[df_albums['title'] == source_album]['id'].to_string(index=False).strip()
         return ret_album_id
@@ -57,9 +68,10 @@ def download_file(url: str, local_folder: str, source_file: str):
             f.write(response.content)
             f.close()
 
-def dl_album(album_id):
+
+def dl_album(dl_album_id):
     try:
-        media_files = dl_service.mediaItems().search(body={'albumId': album_id}).execute()['mediaItems']
+        media_files = dl_service.mediaItems().search(body={'albumId': dl_album_id}).execute()['mediaItems']
         destination_folder = r'.\CacheFolder'
         for media_file in media_files:
             file_name = media_file['filename']
@@ -70,13 +82,5 @@ def dl_album(album_id):
     return None
 
 
-fixed_source = "Recipes"
-album_id = get_album_id(fixed_source)
-if album_id == ():
-    exit()
-else:
-    dl_album(album_id)
-
-
-
-
+if __name__ == "__main__":
+    main()
