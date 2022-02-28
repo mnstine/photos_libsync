@@ -1,7 +1,7 @@
 import os
+import requests
+import pandas as pd
 from init_photo_service import Create_Service
-import pandas as pd  # pip install pandas
-import requests  # pip install requests
 
 pd.set_option('display.max_columns', 100)
 pd.set_option('display.max_rows', 150)
@@ -20,9 +20,12 @@ endpoint = 'mediaget_endpoint'
 dl_service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, endpoint, SCOPES)
 
 
-def main()
-    fixed_source = "Recipes"
-    album_id = get_album_id(fixed_source)
+def main(source_album):
+    dir = r'.\CacheFolder'
+    for f in os.listdir(dir):
+        print('Deleting Cache', f)
+        os.remove(os.path.join(dir, f))
+    album_id = get_album_id(source_album)
     if album_id == ():
         exit()
     else:
@@ -47,11 +50,10 @@ def get_album_id(source_album):
             if response_albums.get('albums') is not None:
                 albums.extend(response_albums.get('albums'))
             next_page_token = response_albums.get('nextPageToken')
-        print(albums)
         df_albums = pd.DataFrame(albums,
                                  columns=['id', 'title', 'productURL', 'mediaItemsCount', 'coverPhotoBaseURL',
                                           'coverMediaID'])
-        print(df_albums)
+        print(df_albums['title'])
         ret_album_id = df_albums[df_albums['title'] == source_album]['id'].to_string(index=False).strip()
         return ret_album_id
     except Exception as e:

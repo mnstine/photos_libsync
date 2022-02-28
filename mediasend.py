@@ -21,24 +21,19 @@ endpoint = 'mediasend_endpoint'
 
 service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, DISCOVERY_URL, endpoint, SCOPES)
 
-token = pickle.load(open('token_photoslibrary_v1.pickle', 'rb'))
+token = pickle.load(open('token_photoslibrary_v1_mediasend_endpoint.pickle', 'rb'))
 upload_url = 'https://photoslibrary.googleapis.com/v1/uploads'
 send_tokens = []
 
 
-def main():
-    destination = "Recipes"
-    album_id = get_album_id(destination)
-    if album_id:
-        album_id = album_id
-    else:
-        create_album(destination)
+def main(dest_album):
+    album_id = get_album_id(dest_album)
+    if album_id == 'Series([], )':
+        create_album(dest_album)
         print('Created new Album')
-        album_id = get_album_id(destination)
-    print(album_id)
+        album_id = get_album_id(dest_album)
     upload_album(album_id)
     commit_result = commit_transfer(album_id)
-    print(commit_result)
     return
 
 
@@ -87,8 +82,7 @@ def upload_image(img_folder, img_name, ul_token):
     }
     img = open(img_folder, 'rb').read()
     response = requests.post(upload_url, data=img, headers=headers)
-    print('\nUpload token: {0}'.format(response.content.decode('utf-8')))
-    print(img_name)
+    print('Uploading file ', img_name)
     return response
 
 
@@ -103,4 +97,4 @@ def commit_transfer(commit_album_id):
 
 
 if __name__ == "__main__":
-    main()
+    main('Mic project')
