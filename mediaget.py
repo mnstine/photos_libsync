@@ -73,8 +73,22 @@ def download_file(url: str, local_folder: str, source_file: str):
 
 def dl_album(dl_album_id):
     try:
-        media_files = dl_service.mediaItems().search(body={'albumId': dl_album_id}).execute()['mediaItems']
         destination_folder = r'.\CacheFolder'
+        media_files = None
+        next_page_token = 'IsNull'
+        count = 0
+        while next_page_token is not None:
+            next_page_token = '' if next_page_token == 'IsNull' else next_page_token
+            media_files_results = dl_service.mediaItems().search(
+                body={'albumId': dl_album_id, "pageSize": 100, 'pageToken': next_page_token}).execute()
+            if next_page_token != '':
+                media_files.append(media_files_results.get('mediaItems'))
+                next_page_token = media_files_results.get('nextPageToken')
+                count= count+1
+                print(count, ' - ', next_page_token)
+            else:
+                media_files = media_files_results.get('mediaItems')
+                next_page_token = media_files_results.get('nextPageToken')
         for media_file in media_files:
             file_name = media_file['filename']
             download_url = media_file['baseUrl'] + '=d'
