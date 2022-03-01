@@ -66,14 +66,16 @@ def get_album_id(source_album):
 def upload_album(ul_album_id):
     source_folder = r'.\CacheFolder'
     media_files = os.listdir(source_folder)
+    send_files_count = len(media_files)
     for media_file in media_files:
         img_obj = os.path.join(source_folder, media_file)
-        token_response = upload_image(img_obj, os.path.basename(img_obj), token)
+        token_response = upload_image(img_obj, os.path.basename(img_obj), token, send_files_count)
         send_tokens.append(token_response.content.decode('utf-8'))
+        send_files_count -= 1
     return None
 
 
-def upload_image(img_folder, img_name, ul_token):
+def upload_image(img_folder, img_name, ul_token, send_files_count):
     headers = {
         'Authorization': 'Bearer ' + ul_token.token,
         'Content-type': 'application/octet-stream',
@@ -82,7 +84,7 @@ def upload_image(img_folder, img_name, ul_token):
     }
     img = open(img_folder, 'rb').read()
     response = requests.post(upload_url, data=img, headers=headers)
-    print('Uploading file ', img_name)
+    print(send_files_count, ' - Uploading file ', img_name)
     return response
 
 

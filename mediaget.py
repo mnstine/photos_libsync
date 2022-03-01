@@ -62,10 +62,10 @@ def get_album_id(source_album):
     return ()
 
 
-def download_file(url: str, local_folder: str, source_file: str):
+def download_file(url: str, local_folder: str, source_file: str, media_count):
     response = requests.get(url)
     if response.status_code == 200:
-        print('Downloading file {0}'.format(source_file))
+        print(media_count, ' - Downloading file {0}'.format(source_file))
         with open(os.path.join(local_folder, source_file), 'wb') as f:
             f.write(response.content)
             f.close()
@@ -82,17 +82,19 @@ def dl_album(dl_album_id):
             media_files_results = dl_service.mediaItems().search(
                 body={'albumId': dl_album_id, "pageSize": 100, 'pageToken': next_page_token}).execute()
             if next_page_token != '':
-                media_files.append(media_files_results.get('mediaItems'))
+                media_files.extend(media_files_results.get('mediaItems'))
                 next_page_token = media_files_results.get('nextPageToken')
                 count= count+1
                 print(count, ' - ', next_page_token)
             else:
                 media_files = media_files_results.get('mediaItems')
                 next_page_token = media_files_results.get('nextPageToken')
+        media_files_count = len(media_files)
         for media_file in media_files:
             file_name = media_file['filename']
             download_url = media_file['baseUrl'] + '=d'
-            download_file(download_url, destination_folder, file_name)
+            download_file(download_url, destination_folder, file_name, media_files_count)
+            media_files_count -= 1
     except Exception as e:
         print('Unable to find %s Album.')
     return None
